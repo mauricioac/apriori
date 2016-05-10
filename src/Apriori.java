@@ -58,6 +58,31 @@ public class Apriori {
 		JobControl control = new JobControl("jobcontrol");
         control.addJob(job1);
         
+        JobConf comb2 = new JobConf(Apriori.class);
+        comb2.setJobName("contagem");
+
+        comb2.setOutputKeyClass(Text.class);
+        comb2.setOutputValueClass(IntWritable.class);
+
+        comb2.setMapperClass(MapContagem.class);
+        comb2.setReducerClass(ReduceContagem.class);
+		
+        comb2.setInputFormat(TextInputFormat.class);
+        comb2.setOutputFormat(TextOutputFormat.class);
+        
+        File saida2 = new File("/home/mauricio/apriori/contagem");
+        
+        if (saida2.exists()) {
+        	FileUtils.deleteDirectory(saida2);
+        }
+
+        FileInputFormat.setInputPaths(comb2, new Path("/home/mauricio/apriori/contagem"));
+        FileOutputFormat.setOutputPath(comb2, new Path("/home/mauricio/apriori/comb2_temp"));
+		
+		Job job2 = new Job(comb2);
+		
+		control.addJob(job2);
+        
         control.run();
 	}
 
