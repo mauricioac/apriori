@@ -10,17 +10,17 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
 public class MapContagem extends MapReduceBase implements
-            Mapper<LongWritable, Text, Text, IntWritable> {
+            Mapper<LongWritable, Text, Text, Text> {
 
         @Override
-        public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter)
+        public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter)
                 throws IOException {
         	String line = value.toString();
             String[] values = line.trim().split(" ");
             Apriori.TRANSACOES += 1;
             
             for (int i = 0; i < values.length; i++) {
-            	output.collect(new Text(values[i]), new IntWritable(1));
+            	output.collect(new Text(values[i]), new Text(Apriori.TRANSACOES + ""));
             }
         }
     }

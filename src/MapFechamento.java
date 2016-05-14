@@ -9,7 +9,7 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
-public class MapConjuntos extends MapReduceBase implements
+public class MapFechamento extends MapReduceBase implements
             Mapper<LongWritable, Text, Text, Text> {
 
         @Override
@@ -17,10 +17,7 @@ public class MapConjuntos extends MapReduceBase implements
                 throws IOException {
         	String line = value.toString();
             String[] values = line.trim().split("\t");
-            String[] linhas = values[1].split(" ");
             
-            for (int i = 0; i < linhas.length; i++) {
-            	output.collect(new Text(linhas[i]), new Text(values[0]));
-            }
+            output.collect(new Text(values[1]), new Text(values[0]));
         }
     }
