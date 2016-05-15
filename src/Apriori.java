@@ -27,7 +27,7 @@ import org.apache.commons.io.FileUtils;
 
 public class Apriori {
 	
-	public static int SUPORTE_MINIMO = 10; // porcentagem
+	public static int SUPORTE_MINIMO = 5; // porcentagem
 	public static int TRANSACOES = 0;
 	
 	public static HashMap<String, Set<String>> contagem = new HashMap<String, Set<String>>();
@@ -57,7 +57,7 @@ public class Apriori {
         	FileUtils.deleteDirectory(saida);
         }
 
-        FileInputFormat.setInputPaths(contagem, new Path(userHome + "/projects/apriori/T40I10D100K.dat"));
+        FileInputFormat.setInputPaths(contagem, new Path(userHome + "/projects/apriori/menor.dat"));
         FileOutputFormat.setOutputPath(contagem, new Path(userHome + "/ap/contagem"));
 		
 		Job job1 = new Job(contagem);
