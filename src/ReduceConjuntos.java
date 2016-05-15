@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.IntWritable;
@@ -30,14 +31,36 @@ import com.google.common.collect.Sets;
         		codigos.add(values.next().toString());
         	}
         	
-        	Set<String> conjuntos = new HashSet<String>(codigos);
-        	Set<Set<String>> combinacoes = Sets.powerSet(conjuntos);
+        	Set<String> conjuntos = new TreeSet<String>(codigos);
         	
-        	for (Iterator<Set<String>> iterator = combinacoes.iterator(); iterator.hasNext();) {
-        		Set<String> o = iterator.next();
-        		if (o.size() > 1) {
+        	PowerSet<String> powerset = new PowerSet<String>(conjuntos);
+        	System.out.println(key.toString());
+        	System.out.println(codigos.toString());
+        	
+            for(Set<String> o:powerset)
+            {
+            	if (o.size() > 1 && suporte(o) > Apriori.SUPORTE_MINIMO) {
         			output.collect(new Text(StringUtils.join(o.toArray(), ",")), key);
         		}
+            }
+        }
+        
+        public double suporte(Set<String> conjunto)
+        {
+        	Set<String> intersecao = new HashSet<String>();
+        	boolean primeiro = true;
+        	
+        	for (Iterator<String> iterator = conjunto.iterator(); iterator.hasNext();) {
+        		String s = iterator.next();
+        		
+        		if (primeiro) {
+        			intersecao = Apriori.contagem.get(s);
+        			primeiro = false;
+        		} else {
+        			intersecao = Sets.intersection(intersecao, Apriori.contagem.get(s));
+        		}
         	}
+        	
+        	return (100.0f * intersecao.size()) / Apriori.TRANSACOES;
         }
     }

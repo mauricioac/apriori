@@ -7,17 +7,11 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.Reducer;
 
- public class ReduceContagem extends MapReduceBase implements
-            Reducer<Text, Text, Text, Text> {
+ public class ReduceContagem extends Reducer<Text, Text, Text, Text> {
 		 
-        @Override
-        public void reduce(Text key, Iterator<Text> values,
-                OutputCollector<Text, Text> output, Reporter reporter)
+        public void reduce(Text key, Iterator<Text> values, Context context)
                 throws IOException {
             
         	int count = 0;
@@ -34,7 +28,11 @@ import org.apache.hadoop.mapred.Reporter;
         	
         	if (porcentagem > Apriori.SUPORTE_MINIMO) {
         		
-        		output.collect(key, new Text(StringUtils.join(transacoes.toArray(), " ")));
+        		try {
+					context.write(key, new Text(StringUtils.join(transacoes.toArray(), " ")));
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
         		Apriori.contagem.put(key.toString(), new HashSet<String>(transacoes));
         	}
         }
