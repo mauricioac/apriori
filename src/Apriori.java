@@ -12,7 +12,7 @@ import org.apache.commons.io.FileUtils;
 
 public class Apriori {
 	
-	public static int SUPORTE_MINIMO = 15; // porcentagem
+	public static int SUPORTE_MINIMO = 50; // porcentagem
 	public static int TRANSACOES = 0;
 	
 	public static HashMap<String, Set<String>> contagem = new HashMap<String, Set<String>>();
@@ -39,7 +39,7 @@ public class Apriori {
 		job1.setMapperClass(MapContagem.class);
 		job1.setReducerClass(ReduceContagem.class);
 		
-		FileInputFormat.setInputPaths(job1, new Path(userHome + "/projects/apriori/menor.dat"));
+		FileInputFormat.setInputPaths(job1, new Path(userHome + "/apriori/teste.dat"));
         FileOutputFormat.setOutputPath(job1, new Path(userHome + "/ap/contagem"));
 		
 		job1.submit();

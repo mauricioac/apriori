@@ -2,13 +2,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+
+import com.google.common.collect.Sets;
 
 public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
 
@@ -18,10 +23,18 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         	String val = value.toString();
             String[] linhas = val.trim().split("\n");
             
-            List<Set<String>> itemsets = apriori(linhas);
+            HashMap<Set<String>, Integer> itemsets = apriori(linhas);
+            
+            Set<Set<String>> keys = itemsets.keySet();
+        	
+        	for (Iterator<Set<String>> iterator = keys.iterator(); iterator.hasNext();) {
+        		Set<String> k = iterator.next();
+        		
+        		context.write(new Text(StringUtils.join(k.toArray(), ",")), new Text(Integer.toString(itemsets.get(k))));
+        	}
         }
         
-        public List<Set<String>> apriori(String[] linhas)
+        public HashMap<Set<String>, Integer> apriori(String[] linhas)
         {
         	ArrayList<ArrayList<String>> transacoes = new ArrayList<ArrayList<String>>();
         	HashMap<String, List<String>> ocorrencias = new HashMap<String, List<String>>();
@@ -49,7 +62,7 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         		
         		double suporte = (100.0f * count) / linhas.length;
         		
-        		if (suporte <= Apriori.SUPORTE_MINIMO) {
+        		if (suporte < Apriori.SUPORTE_MINIMO) {
         			toRemove.add(k);
         		}
         	}
@@ -59,23 +72,86 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         	}
         	
         	keys = ocorrencias.keySet();
+        	List<String> elementos = new ArrayList<String>();
         	
         	for (Iterator<String> iterator = keys.iterator(); iterator.hasNext();) {
         		String k = iterator.next();
-        		System.out.println(k + " : " + ocorrencias.get(k));
+        		elementos.add(k);
         	}
         	
-        	int k = 0;
+        	int k = 2;
         	boolean continuar = true;
+        	
+        	HashMap<Set<String>, Integer> finais = new HashMap<Set<String>, Integer>();
         	
         	while (continuar) {
         		continuar = false;
         		
+        		List<List<String>> p = permutation(elementos, k);
         		
+        		if (p.size() == 0) {
+        			break;
+        		}
+        		
+        		for (int i = 0; i < p.size(); i++) {
+        			TreeSet<String> set = new TreeSet<String>(p.get(i));
+        			int contagem = conta(set, ocorrencias);
+        			double sup = (100.0f * contagem) / (double) linhas.length;
+        			
+        			if (sup >= Apriori.SUPORTE_MINIMO) {
+        				continuar = true;
+        				finais.put(set, contagem);
+        			}
+        		}
         		
         		k++;
         	}
         	
-        	return new ArrayList<Set<String>>();
+        	return finais;
+        }
+        
+        public List<List<String>> permutation(List<String> nums, int k) {
+        	
+            List<List<String>> conjuntos = new ArrayList<List<String>>();
+            
+            for (int i = 0; i < nums.size(); i++) {
+            	ArrayList<String> temp = new ArrayList<String>();
+            	temp.add(nums.get(i));
+            	permuta(nums, conjuntos, temp, i, k, 1);
+            }
+            
+            return conjuntos;
+        }
+        
+        public void permuta(List<String> nums, List<List<String>> conjuntos, List<String> temp, int j, int k, int l)
+        {
+        	if (l < k) {
+        		for (int i = j + 1; i < nums.size(); i++) {
+            		List<String> temp2 = new ArrayList<String>(temp);
+            		temp2.add(nums.get(i));
+            		permuta(nums, conjuntos, temp2, i, k, l+1);
+            	}
+        	} else {
+        		conjuntos.add(temp);
+        	}
+        }
+        
+        public int conta(Set<String> conjunto, HashMap<String, List<String>> ocorrencias)
+        {
+        	Set<String> intersecao = new HashSet<String>();
+        	boolean primeiro = true;
+        	
+        	for (Iterator<String> iterator = conjunto.iterator(); iterator.hasNext();) {
+        		String s = iterator.next();
+        		
+        		if (primeiro) {
+        			intersecao = new TreeSet<String>(ocorrencias.get(s));
+        			primeiro = false;
+        		} else {
+        			intersecao = Sets.intersection(intersecao, new TreeSet<String>(ocorrencias.get(s)));
+        		}
+        	}
+        	
+        	return intersecao.size();
         }
     }
