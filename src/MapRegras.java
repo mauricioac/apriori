@@ -5,29 +5,24 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Mapper.Context;
 
 import com.google.common.collect.Sets;
 
-public class MapRegras extends MapReduceBase implements
-            Mapper<LongWritable, Text, Text, Text> {
+public class MapRegras extends Mapper<LongWritable, Text, Text, Text> {
 
-        @Override
-        public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter)
-                throws IOException {
+    @Override
+    public void map(LongWritable key, Text value, Context context)
+            throws IOException, InterruptedException {
         	String line = value.toString();
             String[] values = line.trim().split("\t");
     
-            String[] conjunto = values[0].split(",");
+            String[] conjunto = key.toString().split(",");
     		Set<String> subconjuntos = new HashSet<String>(Arrays.asList(conjunto));
         	Set<Set<String>> combinacoes = Sets.powerSet(subconjuntos);
         	
@@ -42,7 +37,7 @@ public class MapRegras extends MapReduceBase implements
         				}
         			}
         			
-        			output.collect(new Text(StringUtils.join(o.toArray(), ",") + " -> " + StringUtils.join(direito.toArray(), ",")), new Text(values[1]));
+        			context.write(new Text(StringUtils.join(o.toArray(), ",") + " -> " + StringUtils.join(direito.toArray(), ",")), new Text("1"));
         		}
         	}
         }

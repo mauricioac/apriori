@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -9,20 +8,14 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.Reducer;
 
 import com.google.common.collect.Sets;
 
- public class ReduceRegras extends MapReduceBase implements
-            Reducer<Text, Text, Text, Text> {
+ public class ReduceRegras extends Reducer<Text, Text, Text, Text> {
 		 
-        @Override
-        public void reduce(Text key, Iterator<Text> values,
-                OutputCollector<Text, Text> output, Reporter reporter)
-                throws IOException {
+        public void reduce(Text key, Iterator<Text> values, Context context)
+                throws IOException, InterruptedException {
         	
         	String[] pedacos = key.toString().split(" -> ");
         	String[] esquerdo = pedacos[0].split(",");
@@ -30,7 +23,7 @@ import com.google.common.collect.Sets;
         	
         	double conf = confianca(esquerdo, direito);
         	
-        	output.collect(key, new Text("suporte: " + values.next().toString() + ", confianca: " + Double.toString(conf)));
+        	context.write(key, new Text("suporte: " + values.next().toString() + ", confianca: " + Double.toString(conf)));
         }
         
         public double confianca(String[] esquerdo, String[] direito)

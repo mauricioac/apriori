@@ -9,20 +9,14 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.Reducer;
 
 import com.google.common.collect.Sets;
 
- public class ReduceFechamento extends MapReduceBase implements
-            Reducer<Text, Text, Text, Text> {
+ public class ReduceFechamento extends Reducer<Text, Text, Text, Text> {
 		 
-        @Override
-        public void reduce(Text key, Iterator<Text> values,
-                OutputCollector<Text, Text> output, Reporter reporter)
-                throws IOException {
+        public void reduce(Text key, Iterator<Text> values, Context context)
+                throws IOException, InterruptedException {
         	
         	List<HashSet<String>> conjuntos = new ArrayList<HashSet<String>>();
         	List<Integer> remover = new ArrayList<Integer>();
@@ -53,7 +47,7 @@ import com.google.common.collect.Sets;
         			continue;
         		}
         		
-        		output.collect(new Text(StringUtils.join(conjuntos.get(i).toArray(), ",")), key);
+        		context.write(new Text(StringUtils.join(conjuntos.get(i).toArray(), ",")), key);
         	}
         }
         

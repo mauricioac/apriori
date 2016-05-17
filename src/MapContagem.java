@@ -23,18 +23,18 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         	String val = value.toString();
             String[] linhas = val.trim().split("\n");
             
-            HashMap<Set<String>, Integer> itemsets = apriori(linhas);
+            HashMap<Set<String>, ArrayList<String>> itemsets = apriori(linhas);
             
             Set<Set<String>> keys = itemsets.keySet();
         	
         	for (Iterator<Set<String>> iterator = keys.iterator(); iterator.hasNext();) {
         		Set<String> k = iterator.next();
         		
-        		context.write(new Text(StringUtils.join(k.toArray(), ",")), new Text(Integer.toString(itemsets.get(k))));
+        		context.write(new Text(StringUtils.join(k.toArray(), ",")), new Text(Integer.toString(linhas.length) + "|" + StringUtils.join(itemsets.get(k).toArray(), ",") ));
         	}
         }
         
-        public HashMap<Set<String>, Integer> apriori(String[] linhas)
+        public HashMap<Set<String>, ArrayList<String>> apriori(String[] linhas)
         {
         	ArrayList<ArrayList<String>> transacoes = new ArrayList<ArrayList<String>>();
         	HashMap<String, List<String>> ocorrencias = new HashMap<String, List<String>>();
@@ -82,9 +82,9 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         	int k = 2;
         	boolean continuar = true;
         	
-        	HashMap<Set<String>, Integer> finais = new HashMap<Set<String>, Integer>();
+        	HashMap<Set<String>, ArrayList<String>> finais = new HashMap<Set<String>, ArrayList<String>>();
         	
-        	while (continuar) {
+        	while (continuar && k < 4) {
         		continuar = false;
         		
         		List<List<String>> p = permutation(elementos, k);
@@ -95,12 +95,12 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         		
         		for (int i = 0; i < p.size(); i++) {
         			TreeSet<String> set = new TreeSet<String>(p.get(i));
-        			int contagem = conta(set, ocorrencias);
-        			double sup = (100.0f * contagem) / (double) linhas.length;
+        			Set<String> contagem = conta(set, ocorrencias);
+        			double sup = (100.0f * contagem.size()) / (double) linhas.length;
         			
         			if (sup >= Apriori.SUPORTE_MINIMO) {
         				continuar = true;
-        				finais.put(set, contagem);
+        				finais.put(set, new ArrayList<String>(contagem));
         			}
         		}
         		
@@ -136,7 +136,7 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         	}
         }
         
-        public int conta(Set<String> conjunto, HashMap<String, List<String>> ocorrencias)
+        public Set<String> conta(Set<String> conjunto, HashMap<String, List<String>> ocorrencias)
         {
         	Set<String> intersecao = new HashSet<String>();
         	boolean primeiro = true;
@@ -152,6 +152,6 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         		}
         	}
         	
-        	return intersecao.size();
+        	return intersecao;
         }
     }

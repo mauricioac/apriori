@@ -1,66 +1,40 @@
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.Reducer;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-
- public class ReduceConjuntos extends MapReduceBase implements
-            Reducer<Text, Text, Text, Text> {
+ public class ReduceConjuntos extends Reducer<Text, Text, Text, Text> {
 		 
-        @Override
-        public void reduce(Text key, Iterator<Text> values,
-                OutputCollector<Text, Text> output, Reporter reporter)
-                throws IOException {
-        	List<String> codigos = new ArrayList<String>();
+        public void reduce(Text key, Iterator<Text> values, Context context)
+                throws IOException, InterruptedException {
+        	
+        	int totalLinhas = 0;
+        	int contagemTotal = 0;
+        	ArrayList<String> _linhas = new ArrayList<String>();
         	
         	while (values.hasNext()) {
-        		codigos.add(values.next().toString());
-        	}
-        	
-        	Set<String> conjuntos = new TreeSet<String>(codigos);
-        	
-        	PowerSet<String> powerset = new PowerSet<String>(conjuntos);
-        	System.out.println(key.toString());
-        	System.out.println(codigos.toString());
-        	
-            for(Set<String> o:powerset)
-            {
-            	if (o.size() > 1 && suporte(o) > Apriori.SUPORTE_MINIMO) {
-        			output.collect(new Text(StringUtils.join(o.toArray(), ",")), key);
-        		}
-            }
-        }
-        
-        public double suporte(Set<String> conjunto)
-        {
-        	Set<String> intersecao = new HashSet<String>();
-        	boolean primeiro = true;
-        	
-        	for (Iterator<String> iterator = conjunto.iterator(); iterator.hasNext();) {
-        		String s = iterator.next();
+        		String[] linha = values.next().toString().split("|");
+        		int linhas = Integer.parseInt(linha[0]);
+        		String[] conjLinhas = linha[1].split(",");
         		
-        		if (primeiro) {
-        			intersecao = Apriori.contagem.get(s);
-        			primeiro = false;
-        		} else {
-        			intersecao = Sets.intersection(intersecao, Apriori.contagem.get(s));
+        		totalLinhas += linhas;
+        		contagemTotal += conjLinhas.length;
+        		
+        		for (int i = 0; i < conjLinhas.length; i++) {
+        			_linhas.add(conjLinhas[i]);
         		}
         	}
         	
-        	return (100.0f * intersecao.size()) / Apriori.TRANSACOES;
+        	double sup = (100.0f * contagemTotal) / (double) totalLinhas;
+        	
+        	if (sup > Apriori.SUPORTE_MINIMO) {
+        		context.write(key, new Text(StringUtils.join(_linhas.toArray())));
+        	}
         }
     }

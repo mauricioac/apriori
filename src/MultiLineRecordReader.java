@@ -149,6 +149,7 @@ public class MultiLineRecordReader extends RecordReader<LongWritable, Text> {
 		int lines = 0;
 		
 		for (int i = 0; i < maxBytesToConsume; i++) {
+			
 		
 			int offsetTmp = in.readLine(
 			                         tmp,
@@ -167,7 +168,7 @@ public class MultiLineRecordReader extends RecordReader<LongWritable, Text> {
 			
 			lines++;
 			
-			if (lines == 100) {
+			if (lines == 500) {
 				break;
 			}
 		}
