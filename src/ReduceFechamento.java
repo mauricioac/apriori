@@ -10,19 +10,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Reducer.Context;
 
 import com.google.common.collect.Sets;
 
  public class ReduceFechamento extends Reducer<Text, Text, Text, Text> {
 		 
-        public void reduce(Text key, Iterator<Text> values, Context context)
-                throws IOException, InterruptedException {
+	 public void reduce(Text key, Iterable<Text> values, Context context)
+             throws IOException, InterruptedException {
         	
         	List<HashSet<String>> conjuntos = new ArrayList<HashSet<String>>();
         	List<Integer> remover = new ArrayList<Integer>();
         	
-        	while (values.hasNext()) {
-        		String[] conj = values.next().toString().split(",");
+        	while (values.iterator().hasNext()) {
+        		String[] conj = values.iterator().next().toString().split(",");
         		conjuntos.add(new HashSet<String>(Arrays.asList(conj)));
         	}
         	

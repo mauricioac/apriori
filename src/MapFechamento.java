@@ -1,23 +1,27 @@
 import java.io.IOException;
-import java.util.StringTokenizer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import org.apache.hadoop.io.IntWritable;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Mapper.Context;
 
-public class MapFechamento extends MapReduceBase implements
-            Mapper<LongWritable, Text, Text, Text> {
+import com.google.common.collect.Sets;
 
-        @Override
-        public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter)
-                throws IOException {
+public class MapFechamento extends Mapper<LongWritable, Text, Text, Text> {
+
+    @Override
+    public void map(LongWritable key, Text value, Context context)
+            throws IOException, InterruptedException {
         	String line = value.toString();
             String[] values = line.trim().split("\t");
             
-            output.collect(new Text(values[1]), new Text(values[0]));
+            context.write(new Text(values[1]), new Text(values[0]));
         }
     }

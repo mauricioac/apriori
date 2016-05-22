@@ -22,12 +22,13 @@ public class MapRegras extends Mapper<LongWritable, Text, Text, Text> {
         	String line = value.toString();
             String[] values = line.trim().split("\t");
     
-            String[] conjunto = key.toString().split(",");
+            String[] conjunto = values[1].toString().split(",");
     		Set<String> subconjuntos = new HashSet<String>(Arrays.asList(conjunto));
         	Set<Set<String>> combinacoes = Sets.powerSet(subconjuntos);
         	
         	for (Iterator<Set<String>> iterator = combinacoes.iterator(); iterator.hasNext();) {
         		Set<String> o = iterator.next();
+//        		System.out.println(o);
         		if (o.size() > 0 && o.size() < conjunto.length) {
         			List<String> direito = new ArrayList<String>();
         			

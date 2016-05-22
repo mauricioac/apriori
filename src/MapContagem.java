@@ -23,18 +23,18 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         	String val = value.toString();
             String[] linhas = val.trim().split("\n");
             
-            HashMap<Set<String>, ArrayList<String>> itemsets = apriori(linhas);
+            HashMap<Set<String>, ArrayList<String>> itemsets = apriori(linhas, context);
             
             Set<Set<String>> keys = itemsets.keySet();
         	
-        	for (Iterator<Set<String>> iterator = keys.iterator(); iterator.hasNext();) {
-        		Set<String> k = iterator.next();
-        		
-        		context.write(new Text(StringUtils.join(k.toArray(), ",")), new Text(Integer.toString(linhas.length) + "|" + StringUtils.join(itemsets.get(k).toArray(), ",") ));
-        	}
+//        	for (Iterator<Set<String>> iterator = keys.iterator(); iterator.hasNext();) {
+//        		Set<String> k = iterator.next();
+//        		
+//        		//context.write(new Text(StringUtils.join(k.toArray(), ",")), new Text(Integer.toString(linhas.length) + ";" + StringUtils.join(itemsets.get(k).toArray(), ",") ));
+//        	}
         }
         
-        public HashMap<Set<String>, ArrayList<String>> apriori(String[] linhas)
+        public HashMap<Set<String>, ArrayList<String>> apriori(String[] linhas, Context context) throws IOException, InterruptedException
         {
         	ArrayList<ArrayList<String>> transacoes = new ArrayList<ArrayList<String>>();
         	HashMap<String, List<String>> ocorrencias = new HashMap<String, List<String>>();
@@ -50,6 +50,10 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         			}
         			
         			ocorrencias.get(itens[j]).add(Integer.toString(i));
+        			if (Apriori.contagem.get(itens[j]) == null) {
+        				Apriori.contagem.put(itens[j], new HashSet<String>());
+        			}
+        			Apriori.contagem.get(itens[j]).add(Integer.toString(i));
         		}
         	}
         	
@@ -84,7 +88,7 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         	
         	HashMap<Set<String>, ArrayList<String>> finais = new HashMap<Set<String>, ArrayList<String>>();
         	
-        	while (continuar && k < 4) {
+        	while (continuar && k < 5) {
         		continuar = false;
         		
         		List<List<String>> p = permutation(elementos, k);
@@ -100,7 +104,8 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         			
         			if (sup >= Apriori.SUPORTE_MINIMO) {
         				continuar = true;
-        				finais.put(set, new ArrayList<String>(contagem));
+//        				finais.put(set, new ArrayList<String>(contagem));
+        				context.write(new Text(StringUtils.join(contagem.toArray(), ",")), new Text(Integer.toString(linhas.length) + ";" + StringUtils.join(contagem.toArray(), ",") ));
         			}
         		}
         		

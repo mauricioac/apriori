@@ -14,19 +14,19 @@ import com.google.common.collect.Sets;
 
  public class ReduceRegras extends Reducer<Text, Text, Text, Text> {
 		 
-        public void reduce(Text key, Iterator<Text> values, Context context)
+        public void reduce(Text key, Iterable<Text> values, Context context)
                 throws IOException, InterruptedException {
         	
         	String[] pedacos = key.toString().split(" -> ");
         	String[] esquerdo = pedacos[0].split(",");
         	String[] direito = pedacos[1].split(",");
         	
-        	double conf = confianca(esquerdo, direito);
+        	double conf[] = confianca(esquerdo, direito);
         	
-        	context.write(key, new Text("suporte: " + values.next().toString() + ", confianca: " + Double.toString(conf)));
+        	context.write(key, new Text("suporte: " + conf[0] + ", confianca: " + Double.toString(conf[1])));
         }
         
-        public double confianca(String[] esquerdo, String[] direito)
+        public double[] confianca(String[] esquerdo, String[] direito)
         {
         	Set<String> intersecaoEsquerda = Apriori.contagem.get(esquerdo[0]);
         	
@@ -43,7 +43,10 @@ import com.google.common.collect.Sets;
         	}
         	
         	int contagemDireita = intersecaoEsquerda.size();
+        	double conf = (double) contagemDireita / (double) contagemEsquerda;
         	
-        	return (double) contagemDireita / (double) contagemEsquerda;
+        	double[] r = {contagemDireita, conf};
+        	
+        	return r;
         }
     }

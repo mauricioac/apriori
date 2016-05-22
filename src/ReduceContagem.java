@@ -8,15 +8,16 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Reducer.Context;
 
  public class ReduceContagem extends Reducer<Text, Text, Text, Text> {
 		 
-        public void reduce(Text key, Iterator<Text> values, Context context)
-                throws IOException, InterruptedException {
+	 public void reduce(Text key, Iterable<Text> values, Context context)
+             throws IOException, InterruptedException {
             
-        	while (values.hasNext()) 
+        	while (values.iterator().hasNext()) 
         	{
-        		context.write(key, values.next());
+        		context.write(key, values.iterator().next());
         	}
         }
     }

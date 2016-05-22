@@ -65,6 +65,30 @@ public class Apriori {
 		
         job2.waitForCompletion(true);
         
+        File saida25 = new File(userHome + "/ap/fechamento");
+        
+        if (saida25.exists()) {
+        	FileUtils.deleteDirectory(saida25);
+        }
+        
+        Job fe = new Job();
+        fe.setInputFormatClass(TextInputFormat.class);
+        fe.setOutputKeyClass(Text.class);
+        fe.setOutputValueClass(Text.class);
+        fe.setMapperClass(MapFechamento.class);
+        fe.setReducerClass(ReduceFechamento.class);
+		
+		FileInputFormat.setInputPaths(fe, new Path(userHome + "/ap/conjuntos/part-r-00000"));
+        FileOutputFormat.setOutputPath(fe, new Path(userHome + "/ap/fechamento"));
+		
+        fe.waitForCompletion(true);
+        
+        File saida3 = new File(userHome + "/ap/regras");
+        
+        if (saida3.exists()) {
+        	FileUtils.deleteDirectory(saida3);
+        }
+        
         Job job3 = new Job();
         job3.setInputFormatClass(TextInputFormat.class);
         job3.setOutputKeyClass(Text.class);
@@ -72,10 +96,10 @@ public class Apriori {
         job3.setMapperClass(MapRegras.class);
         job3.setReducerClass(ReduceRegras.class);
 		
-		FileInputFormat.setInputPaths(job2, new Path(userHome + "/ap/conjuntos/part-00000"));
-        FileOutputFormat.setOutputPath(job2, new Path(userHome + "/ap/regras"));
+		FileInputFormat.setInputPaths(job3, new Path(userHome + "/ap/fechamento/part-r-00000"));
+        FileOutputFormat.setOutputPath(job3, new Path(userHome + "/ap/regras"));
 		
-        job2.waitForCompletion(true);
+        job3.submit();
 	}
 
 }
