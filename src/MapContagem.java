@@ -26,12 +26,6 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
             HashMap<Set<String>, ArrayList<String>> itemsets = apriori(linhas, context);
             
             Set<Set<String>> keys = itemsets.keySet();
-        	
-//        	for (Iterator<Set<String>> iterator = keys.iterator(); iterator.hasNext();) {
-//        		Set<String> k = iterator.next();
-//        		
-//        		//context.write(new Text(StringUtils.join(k.toArray(), ",")), new Text(Integer.toString(linhas.length) + ";" + StringUtils.join(itemsets.get(k).toArray(), ",") ));
-//        	}
         }
         
         public HashMap<Set<String>, ArrayList<String>> apriori(String[] linhas, Context context) throws IOException, InterruptedException
@@ -44,6 +38,8 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         		
         		transacoes.add(new ArrayList<String>(Arrays.asList(itens)));
         		
+        		int l = Apriori.TRANSACOES;
+        		
         		for (int j = 0; j < itens.length; j++) {
         			if (ocorrencias.get(itens[j]) == null) {
         				ocorrencias.put(itens[j], new ArrayList<String>());
@@ -53,8 +49,10 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         			if (Apriori.contagem.get(itens[j]) == null) {
         				Apriori.contagem.put(itens[j], new HashSet<String>());
         			}
-        			Apriori.contagem.get(itens[j]).add(Integer.toString(i));
+        			Apriori.contagem.get(itens[j]).add(Integer.toString(l));
         		}
+        		
+        		Apriori.TRANSACOES += 1;
         	}
         	
         	Set<String> keys = ocorrencias.keySet();
@@ -66,7 +64,7 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         		
         		double suporte = (100.0f * count) / linhas.length;
         		
-        		if (suporte < Apriori.SUPORTE_MINIMO) {
+        		if (suporte <= Apriori.SUPORTE_MINIMO) {
         			toRemove.add(k);
         		}
         	}
@@ -88,7 +86,7 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         	
         	HashMap<Set<String>, ArrayList<String>> finais = new HashMap<Set<String>, ArrayList<String>>();
         	
-        	while (continuar && k < 5) {
+        	while (k < 4) {
         		continuar = false;
         		
         		List<List<String>> p = permutation(elementos, k);
@@ -98,14 +96,14 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         		}
         		
         		for (int i = 0; i < p.size(); i++) {
-        			TreeSet<String> set = new TreeSet<String>(p.get(i));
+        			HashSet<String> set = new HashSet<String>(p.get(i));
         			Set<String> contagem = conta(set, ocorrencias);
         			double sup = (100.0f * contagem.size()) / (double) linhas.length;
         			
-        			if (sup >= Apriori.SUPORTE_MINIMO) {
-        				continuar = true;
+        			if (contagem.size() > 0) {
+//        				continuar = true;
 //        				finais.put(set, new ArrayList<String>(contagem));
-        				context.write(new Text(StringUtils.join(contagem.toArray(), ",")), new Text(Integer.toString(linhas.length) + ";" + StringUtils.join(contagem.toArray(), ",") ));
+        				context.write(new Text(StringUtils.join(set.toArray(), ",")), new Text(Integer.toString(linhas.length) + ";" + StringUtils.join(contagem.toArray(), ",") ));
         			}
         		}
         		
@@ -150,10 +148,10 @@ public class MapContagem extends Mapper<LongWritable, Text, Text, Text> {
         		String s = iterator.next();
         		
         		if (primeiro) {
-        			intersecao = new TreeSet<String>(ocorrencias.get(s));
+        			intersecao = new HashSet<String>(ocorrencias.get(s));
         			primeiro = false;
         		} else {
-        			intersecao = Sets.intersection(intersecao, new TreeSet<String>(ocorrencias.get(s)));
+        			intersecao = Sets.intersection(intersecao, new HashSet<String>(ocorrencias.get(s)));
         		}
         	}
         	
